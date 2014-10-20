@@ -14,7 +14,7 @@ module Grape
         env['grape.cache'] = self
         result = catch(:cache_hit) { @app.call(env) }
         if env['grape.cache.capture_key']
-          backend.store(env['grape.cache.capture_key'], result)
+          backend.store(env['grape.cache.capture_key'], result, env['grape.cache.expire_at'])
         end
         result
       end

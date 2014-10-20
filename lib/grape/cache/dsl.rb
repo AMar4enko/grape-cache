@@ -7,6 +7,7 @@ module Grape
       module ClassMethods
         def cache(*arguments, &block)
           config = Grape::Cache::EndpointCacheConfig.new(arguments.extract_options!)
+          config.instance_eval(&block) if block_given?
           route_setting :cache, config
         end
         def route(methods, paths = ['/'], route_options = {}, &block)
