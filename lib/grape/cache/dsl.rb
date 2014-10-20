@@ -6,12 +6,8 @@ module Grape
       extend ActiveSupport::Concern
       module ClassMethods
         def cache(*arguments, &block)
-          options = {options: arguments.extract_options!}
-          if block
-            options[:config] = Grape::Cache::EndpointCacheConfig.new
-            options[:config].instance_eval(&block)
-          end
-          route_setting :cache, options
+          config = Grape::Cache::EndpointCacheConfig.new(arguments.extract_options!)
+          route_setting :cache, config
         end
         def route(methods, paths = ['/'], route_options = {}, &block)
           endpoint_options = {

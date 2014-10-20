@@ -1,29 +1,36 @@
 require 'spec_helper'
 
 describe Grape::Cache do
-  let :app do
-    Class.new(Grape::API) do
+  before do
+    @backend = backend = Class.new(Grape::Cache::Backend::Memory) do
+      public :storage
+    end.new
+
+    grape_app = Class.new(Grape::API) do
+      cache for: 5.seconds do
+      end
+      get :index do
+
+      end
     end
+
+    @app = Rack::Builder.new do
+      use Grape::Cache::Middleware, backend: backend
+      run grape_app
+    end.to_app
   end
 
-  after(:each) { app.reset! }
+  let :backend do
+    @backend
+  end
 
-  describe 'dsl' do
-    it 'adds .cache method into Grape::API' do
-      expect{app.cache}.not_to raise_error
-    end
+  def app
+    @app
+  end
 
-    it 'saves cache configuration into route setting' do
-      app.cache({})
-      app.get(:test) {}
-      expect(app.endpoints.first.options[:route_options][:cache]).not_to be_nil
-    end
-
-    it 'saves cache configuration only for next route' do
-      app.cache({})
-      app.get(:test1) {}
-      app.get(:test2) {}
-      expect(app.endpoints[1].options[:route_options][:cache]).to be_nil
-    end
+  it 'store app result into backend' do
+    allow(backend).to receive(:store).and_call_original
+    get '/index'
+    expect(backend).to have_received(:store)
   end
 end
