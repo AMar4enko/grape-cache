@@ -126,4 +126,44 @@ describe Grape::Cache do
       expect(cache_spy).to have_received(:miss).once
     end
   end
+
+  describe 'expire_after' do
+    let(:cache_spy) { spy('GET spy', miss: true) }
+    before do
+      _cache_spy = cache_spy
+      @grape_app.cache do
+        expire_after 2.seconds
+        etag { 'etag' }
+      end
+      @grape_app.get :expire_after_value do
+        _cache_spy.miss(:after_value)
+      end
+
+      @grape_app.cache do
+        expire_after { 3.seconds.from_now }
+        etag { 'etag' }
+      end
+      @grape_app.get :expire_after_block do
+        _cache_spy.miss(:after_block)
+      end
+    end
+
+    it 'expires cache in 2 seconds defined with value' do
+      get '/expire_after_value'
+      get '/expire_after_value'
+      expect(cache_spy).to have_received(:miss).once.with(:after_value)
+      sleep(2)
+      get '/expire_after_value'
+      expect(cache_spy).to have_received(:miss).twice.with(:after_value)
+    end
+
+    it 'expires cache in 3 seconds defined with block' do
+      get '/expire_after_block'
+      get '/expire_after_block'
+      expect(cache_spy).to have_received(:miss).once.with(:after_block)
+      sleep(3)
+      get '/expire_after_block'
+      expect(cache_spy).to have_received(:miss).twice.with(:after_block)
+    end
+  end
 end

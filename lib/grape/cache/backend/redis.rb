@@ -12,7 +12,7 @@ module Grape
         # @param response[Rack::Response]
         # @param metadata[Grape::Cache::Backend::CacheEntryMetadata] Entry metadata
         def store(key, response, metadata)
-          args = [key, 'code', response.code.to_s, 'headers', Marshal.dump(response.headers), 'body', Marshal.dump(response.body), 'metadata', Marshal.dump(metadata)]
+          args = [key, 'status', response.status.to_s, 'headers', Marshal.dump(response.headers), 'body', Marshal.dump(response.body), 'metadata', Marshal.dump(metadata)]
           if metadata.expire_at
             storage.multi
             storage.hmset(*args)
@@ -23,8 +23,8 @@ module Grape
           end
         end
         def fetch(key)
-          code, headers, body = storage.hmget(key, 'code', 'headers', 'body')
-          Rack::Response.new(Marshal.load(body), code.to_i, Marshal.load(headers))
+          status, headers, body = storage.hmget(key, 'status', 'headers', 'body')
+          Rack::Response.new(Marshal.load(body), status.to_i, Marshal.load(headers))
         rescue
           nil
         end
@@ -34,6 +34,10 @@ module Grape
           Marshal.load(storage.hget(key, 'metadata'))
         rescue
           nil
+        end
+
+        def flush!
+          storage.flushdb
         end
 
         private

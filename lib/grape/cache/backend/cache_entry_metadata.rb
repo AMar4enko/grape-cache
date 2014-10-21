@@ -10,6 +10,10 @@ module Grape
         def expired?(at_time = Time.now)
           self.expire_at && (self.expire_at < at_time)
         end
+
+        def ==(value)
+          [:etag, :last_modified, :expire_at].reduce(true){|result, attr| result && (send(attr) == value.send(attr)) }
+        end
       end
     end
   end

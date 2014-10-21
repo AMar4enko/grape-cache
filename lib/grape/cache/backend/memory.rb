@@ -8,7 +8,7 @@ module Grape
         # @param response[Rack::Response]
         # @param metadata[Grape::Cache::Backend::CacheEntryMetadata] Expiration time
         def store(key, response, metadata)
-          @storage[key] = [response, metadata]
+          storage[key] = [response, metadata]
         end
         # @param key[String] Cache key
         def fetch(key)
@@ -17,7 +17,7 @@ module Grape
           return response if response.nil?
 
           if metadata.expired?
-            @storage.delete(key)
+            storage.delete(key)
             return nil
           end
 
@@ -28,6 +28,10 @@ module Grape
         def fetch_metadata(key)
           return nil unless storage.has_key?(key)
           storage[key].last
+        end
+
+        def flush!
+          storage.clear
         end
 
         private
