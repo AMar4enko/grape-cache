@@ -8,20 +8,30 @@ module Grape
           @storage = redis_connection
         end
 
-        def store(key, response, expire_at = nil)
-          args = [key, 'code', response.code.to_s, 'headers', Marshal.dump(response.headers), 'body', Marshal.dump(response.body)]
-          if expire_after
+        # @param key[String] Cache key
+        # @param response[Rack::Response]
+        # @param metadata[Grape::Cache::Backend::CacheEntryMetadata] Entry metadata
+        def store(key, response, metadata)
+          args = [key, 'code', response.code.to_s, 'headers', Marshal.dump(response.headers), 'body', Marshal.dump(response.body), 'metadata', Marshal.dump(metadata)]
+          if metadata.expire_at
             storage.multi
             storage.hmset(*args)
-            storage.expireat key, expire_at.to_i
+            storage.expireat key, metadata.expire_at.to_i
             storage.exec
           else
             storage.hmset(*args)
           end
         end
         def fetch(key)
-          code, headers, body = storage.get(key, 'code', 'headers', 'body')
+          code, headers, body = storage.hmget(key, 'code', 'headers', 'body')
           Rack::Response.new(Marshal.load(body), code.to_i, Marshal.load(headers))
+        rescue
+          nil
+        end
+
+        # @param key[String] Cache key
+        def fetch_metadata(key)
+          Marshal.load(storage.hget(key, 'metadata'))
         rescue
           nil
         end

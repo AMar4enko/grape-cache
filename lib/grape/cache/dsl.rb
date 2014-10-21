@@ -1,4 +1,4 @@
-require_relative 'endpoint_config'
+require_relative 'endpoint_cache_config'
 
 module Grape
   module Cache
@@ -10,22 +10,9 @@ module Grape
           config.instance_eval(&block) if block_given?
           route_setting :cache, config
         end
-        def route(methods, paths = ['/'], route_options = {}, &block)
-          endpoint_options = {
-              method: methods,
-              path: paths,
-              for: self,
-              route_options: ({
-                  params: Grape::DSL::Configuration.stacked_hash_to_hash(namespace_stackable(:params)) || {}
-              })
-                                 .deep_merge(route_setting(:description) || {})
-                                 .deep_merge({cache: route_setting(:cache)} || {})
-                                 .deep_merge(route_options || {})
-          }
-          endpoints << Grape::Endpoint.new(inheritable_setting, endpoint_options, &block)
 
-          route_end
-          reset_validations!
+        def route(methods, paths = ['/'], route_options = {}, &block)
+          super(methods, paths, route_options.deep_merge({cache: route_setting(:cache)}), &block)
         end
       end
     end
