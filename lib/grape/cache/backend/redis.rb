@@ -42,7 +42,7 @@ module Grape
 
         private
         def storage
-          @storage
+          @_storage ||= @storage.respond_to?(:arity) ? @storage.call : @storage
         end
       end
     end
