@@ -7,6 +7,7 @@ describe Grape::Cache do
     end.new
 
     @grape_app = grape_app = Class.new(Grape::API) do
+      format :json
     end
 
     @app = Rack::Builder.new do
@@ -164,6 +165,28 @@ describe Grape::Cache do
       sleep(3)
       get '/expire_after_block'
       expect(cache_spy).to have_received(:miss).twice.with(:after_block)
+    end
+  end
+
+  describe 'prepare block' do
+    let(:cache_spy) { spy('GET spy', miss: true) }
+
+    before do
+      _cache_spy = cache_spy
+      @grape_app.cache do
+        prepare { @etag = '123456' }
+        etag { @etag }
+      end
+      @grape_app.get :with_prepare do
+        _cache_spy.miss(@etag)
+        {etag: @etag}
+      end
+    end
+
+    it 'executed in endpoint scope before cache validation' do
+      expect{get '/with_prepare'}.to_not raise_error
+      expect(last_response.body).to eq('{"etag":"123456"}')
+      expect(cache_spy).to have_received(:miss).with('123456')
     end
   end
 end

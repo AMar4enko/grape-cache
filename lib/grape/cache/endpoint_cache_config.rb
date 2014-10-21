@@ -31,7 +31,7 @@ module Grape
       # @param middleware[Grape::Cache::Middleware]
       def validate_cache(endpoint, middleware)
         # First cache barrier - 304 cache responses for ETag and If-Last-Modified
-        @prepare_block && endpoint.instance_eval(@prepare_block)
+        @prepare_block && endpoint.instance_eval(&@prepare_block)
         check_etag(endpoint)
         check_modified_since(endpoint)
 

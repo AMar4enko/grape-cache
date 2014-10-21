@@ -82,6 +82,8 @@ All configuration blocks executed against current endpoint:
       # Use params, env here
     end
 
+_At least, they supposed to :D_
+
 You can also use prepare block:
 
     cache do
@@ -91,8 +93,6 @@ You can also use prepare block:
     get :user do
       present @user
     end
-
-_At least, it supposed to :D_
 
 Gem uses 64bit MurmurHash algo to build hashes
 
