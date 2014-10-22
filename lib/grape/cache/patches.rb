@@ -18,7 +18,7 @@ module Grape
       run_filters befores
 
       # Inject our cache check
-      options[:route_options][:cache].validate_cache(self, env['grape.cache'])
+      options[:route_options][:cache] && options[:route_options][:cache].validate_cache(self, env['grape.cache'])
 
       run_filters before_validations
 
