@@ -8,8 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = Grape::Cache::VERSION
   spec.authors       = ["AMar4enko"]
   spec.email         = ["amar4enko@gmail.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.summary       = %q{ HTTP and application caching for Grape framework }
   spec.homepage      = ""
   spec.license       = "MIT"
 
@@ -19,6 +18,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_runtime_dependency "digest-murmurhash", "~> 1.1"
+  spec.add_runtime_dependency "grape", "~> 0.18.0"
 
   spec.add_development_dependency "bundler", "~> 1.6"
   spec.add_development_dependency "rake"

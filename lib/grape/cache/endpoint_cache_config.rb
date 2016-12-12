@@ -36,7 +36,7 @@ module Grape
         check_modified_since(endpoint)
 
         # If here, no HTTP cache hits occured
-        # Retreive request metadata
+        # Retrieve request metadata
         cache_key = create_cache_key(endpoint)
 
         catch :cache_miss do
@@ -58,7 +58,7 @@ module Grape
 
       private
       def cache_key_array(endpoint)
-        endpoint.declared(endpoint.params)
+        endpoint.declared(endpoint.params, {}, [])
       end
 
       def create_cache_key(endpoint)
