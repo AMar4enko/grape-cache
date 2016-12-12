@@ -1,51 +1,48 @@
+# Updated for Grape 0.18
+
 require 'grape'
 
 module Grape
   class Endpoint
-    private
-    def run(env)
-      @env = env
-      @header = {}
+    protected
 
-      @request = Grape::Request.new(env)
-      @params = @request.params
-      @headers = @request.headers
+    def run
+      ActiveSupport::Notifications.instrument('endpoint_run.grape', endpoint: self, env: env) do
+        @header = {}
 
-      cookies.read(@request)
+        @request = Grape::Request.new(env)
+        @params = @request.params
+        @headers = @request.headers
 
-      self.class.before_each.call(self) if self.class.before_each
+        cookies.read(@request)
 
-      run_filters befores
+        self.class.run_before_each(self)
 
-      # Inject our cache check
-      options[:route_options][:cache] && options[:route_options][:cache].validate_cache(self, env['grape.cache'])
+        run_filters befores, :before
 
-      run_filters before_validations
+        #  Inject our cache check
+        options[:route_options][:cache] &&
+        options[:route_options][:cache].validate_cache(self, env['grape.cache'])
 
-      # Retrieve validations from this namespace and all parent namespaces.
-      validation_errors = []
-
-      # require 'pry-byebug'; binding.pry
-
-      route_setting(:saved_validations).each do |validator|
-        begin
-          validator.validate!(params)
-        rescue Grape::Exceptions::Validation => e
-          validation_errors << e
+        if (allowed_methods = env[Grape::Env::GRAPE_ALLOWED_METHODS])
+          raise Grape::Exceptions::MethodNotAllowed, header.merge('Allow' => allowed_methods) unless options?
+          header 'Allow', allowed_methods
+          response_object = ''
+          status 204
+        else
+          run_filters before_validations, :before_validation
+          run_validators validations, request
+          run_filters after_validations, :after_validation
+          response_object = @block ? @block.call(self) : nil
         end
+
+        run_filters afters, :after
+        cookies.write(header)
+
+        # The Body commonly is an Array of Strings, the application instance itself, or a File-like object.
+        response_object = file || [body || response_object]
+        [status, header, response_object]
       end
-
-      if validation_errors.any?
-        raise Grape::Exceptions::ValidationErrors, errors: validation_errors
-      end
-
-      run_filters after_validations
-
-      response_text = @block ? @block.call(self) : nil
-      run_filters afters
-      cookies.write(header)
-
-      [status, header, [body || response_text]]
-    end
+    end # End run
   end
 end
