@@ -1,3 +1,8 @@
+# Important notice !
+Since i'm not Ruby developer anymore i 'd like to transfer this repo to someone who is interested in developing and supporting it.
+Ping me via issues or pull request if it's you :D
+
+
 # Grape::Cache
 
 ## Disclaimer: Gem is in early ALPHA
