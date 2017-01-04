@@ -1,4 +1,4 @@
-# Updated for Grape 0.18
+# Updated for Grape 0.19
 
 require 'grape'
 
